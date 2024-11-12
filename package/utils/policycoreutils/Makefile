@@ -119,6 +119,8 @@ endef
 
 $(foreach a,$(LIBEXEC_UTILS) $(SBIN_UTILS) $(USR_BIN_UTILS) $(USR_SBIN_UTILS),$(eval $(call GenUtilPkg,policycoreutils-$(a),$(a))))
 
+TARGET_CFLAGS += -D_GNU_SOURCE
+
 define Package/policycoreutils/install
 	$(INSTALL_DIR) $(1)/etc
 	$(INSTALL_CONF) $(PKG_INSTALL_DIR)/etc/sestatus.conf $(1)/etc
