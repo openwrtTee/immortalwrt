@@ -10,7 +10,7 @@ Subject: [PATCH] arm64: dts: qcom: ipq6018: repair reserved-memory missing
 
 --- a/arch/arm64/boot/dts/qcom/ipq6018.dtsi
 +++ b/arch/arm64/boot/dts/qcom/ipq6018.dtsi
-@@ -235,6 +235,22 @@
+@@ -230,6 +230,22 @@
  			no-map;
  			record-size = <0x1000>;
  		};
