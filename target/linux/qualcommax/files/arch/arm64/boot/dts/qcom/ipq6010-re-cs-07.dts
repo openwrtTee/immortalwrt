@@ -174,10 +174,8 @@
 &switch {
 	status = "okay";
 
-	switch_cpu_bmp = <0x01>;
 	switch_lan_bmp = <0x1e>;
 	switch_wan_bmp = <0x20>;
-	switch_inner_bmp = <0xc0>;
 	switch_mac_mode = <0x00>;
 	switch_mac_mode1 = <0x0f>;
 	switch_mac_mode2 = <0xff>;

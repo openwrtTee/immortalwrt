@@ -8,8 +8,6 @@
 #include <dt-bindings/leds/common.h>
 
 / {
-	qcom,msm-id = <0x192 0x0>;
-
 	aliases {
 		serial0 = &blsp1_uart3;
 		led-boot = &led_yellow;
@@ -23,12 +21,10 @@
 		ethernet2 = &dp3;
 		ethernet3 = &dp4;
 		ethernet4 = &dp5;
-
-		label-mac-device = &dp5;
 	};
 
 	chosen {
-		bootargs-append = "root=/dev/ubiblock0_1";
+		bootargs-append = " root=/dev/ubiblock0_1";
 	};
 
 	leds {
@@ -174,9 +170,9 @@
 &switch {
 	status = "okay";
 
-	switch_lan_bmp = <(ESS_PORT2 | ESS_PORT3 | ESS_PORT4)>; /* lan port bitmap */
-	switch_wan_bmp = <ESS_PORT5>; /* wan port bitmap */
-	switch_mac_mode = <MAC_MODE_PSGMII>; /* mac mode for uniphy 0 */
+	switch_lan_bmp = <(ESS_PORT2 | ESS_PORT3 | ESS_PORT4)>;
+	switch_wan_bmp = <ESS_PORT5>;
+	switch_mac_mode = <MAC_MODE_PSGMII>;
 
 	qcom,port_phyinfo {
 		port@2 {

@@ -32,7 +32,7 @@
 
 	chosen {
 		stdout-path = "serial0:115200n8";
-		bootargs-append = "root=/dev/ubiblock0_1";
+		bootargs-append = " root=/dev/ubiblock0_1";
 	};
 
 	gpio-export {
@@ -87,7 +87,7 @@
 
 		wlan5g {
 			color = <LED_COLOR_ID_GREEN>;
-			function =  LED_FUNCTION_WLAN_5GHZ;
+			function = LED_FUNCTION_WLAN_5GHZ;
 			gpios = <&tlmm 43 GPIO_ACTIVE_HIGH>;
 			linux,default-trigger = "phy0radio";
 		};

@@ -9,20 +9,20 @@
 
 / {
 	aliases {
-		ethernet0 = &dp1;
-		ethernet1 = &dp2;
-		ethernet2 = &dp3;
-		label-mac-device = &dp1;
 		serial0 = &blsp1_uart3;
 		led-boot = &led_system_white;
 		led-failsafe = &led_system_white;
 		led-running = &led_system_white;
 		led-upgrade = &led_system_white;
+
+		ethernet0 = &dp1;
+		ethernet1 = &dp2;
+		ethernet2 = &dp3;
 	};
 
 	chosen {
 		stdout-path = "serial0:115200n8";
-		bootargs-append = "root=/dev/ubiblock0_1";
+		bootargs-append = " root=/dev/ubiblock0_1";
 	};
 
 	keys {

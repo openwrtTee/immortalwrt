@@ -108,6 +108,15 @@
 		};
 	};
 
+	tmp1628_pins: tmp1628-pins {
+		mux {
+			pins = "gpio69", "gpio70", "gpio73", "gpio74";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-pull-down;
+		};
+	};
+
 	mdio_pins: mdio-pins {
 		mdc {
 			pins = "gpio64";
@@ -130,36 +139,6 @@
 			function = "gpio";
 			bias-pull-down;
 			output-high;
-		};
-	};
-
-	tmp1628_pins: tmp1628-pins {
-		stb1 {
-			pins = "gpio69";
-			function = "gpio";
-			drive-strength = <8>;
-			bias-pull-down;
-		};
-
-		stb2 {
-			pins = "gpio70";
-			function = "gpio";
-			drive-strength = <8>;
-			bias-pull-down;
-		};
-
-		clk {
-			pins = "gpio73";
-			function = "gpio";
-			drive-strength = <8>;
-			bias-pull-down;
-		};
-
-		dio {
-			pins = "gpio74";
-			function = "gpio";
-			drive-strength = <8>;
-			bias-pull-down;
 		};
 	};
 };
@@ -243,10 +222,8 @@
 &switch {
 	status = "okay";
 
-	switch_cpu_bmp = <0x01>;
 	switch_lan_bmp = <0x1e>;
 	switch_wan_bmp = <0x20>;
-	switch_inner_bmp = <0xc0>;
 	switch_mac_mode = <0x00>;
 	switch_mac_mode1 = <0x0f>;
 	switch_mac_mode2 = <0xff>;

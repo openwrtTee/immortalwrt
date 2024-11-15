@@ -19,7 +19,7 @@
 	};
 
 	chosen {
-		bootargs-append = "root=/dev/ubiblock0_1";
+		bootargs-append = " root=/dev/ubiblock0_1";
 	};
 
 	keys {
@@ -93,13 +93,13 @@
 
 &dp3 {
 	status = "okay";
-	phy-handle = <&qca8075_2>;
+	phy-handle = <&qca8075_3>;
 	label = "lan1";
 };
 
 &dp4 {
 	status = "okay";
-	phy-handle = <&qca8075_3>;
+	phy-handle = <&qca8075_4>;
 	label = "wan";
 };
 
@@ -115,15 +115,10 @@
 
 	qca8075_0: ethernet-phy@0 {
 		compatible = "ethernet-phy-ieee802.3-c22";
-		reg = <4>;
-	};
-
-	qca8075_1: ethernet-phy@1 {
-		compatible = "ethernet-phy-ieee802.3-c22";
 		reg = <0>;
 	};
 
-	qca8075_2: ethernet-phy@2 {
+	qca8075_1: ethernet-phy@1 {
 		compatible = "ethernet-phy-ieee802.3-c22";
 		reg = <1>;
 	};
@@ -132,34 +127,39 @@
 		compatible = "ethernet-phy-ieee802.3-c22";
 		reg = <3>;
 	};
+
+	qca8075_4: ethernet-phy@4 {
+		compatible = "ethernet-phy-ieee802.3-c22";
+		reg = <4>;
+	};
 };
 
 &switch {
 	status = "okay";
 
-	switch_lan_bmp = <(ESS_PORT1 | ESS_PORT2 | ESS_PORT4)>; /* lan port bitmap */
-	switch_wan_bmp = <ESS_PORT5>; /* wan port bitmap */
-	switch_mac_mode = <MAC_MODE_PSGMII>; /* MAC mode for UNIPHY instance 0 */
-	switch_mac_mode1 = <MAC_MODE_PSGMII>; /* MAC mode for UNIPHY instance 1 */
-	switch_mac_mode2 = <MAC_MODE_PSGMII>; /* MAC mode for UNIPHY instance 2 */
+	switch_lan_bmp = <(ESS_PORT1 | ESS_PORT2 | ESS_PORT4)>;
+	switch_wan_bmp = <ESS_PORT5>;
+	switch_mac_mode = <MAC_MODE_PSGMII>;
+	switch_mac_mode1 = <MAC_MODE_DISABLED>;
+	switch_mac_mode2 = <MAC_MODE_DISABLED>;
 
 	qcom,port_phyinfo {
-		port@0 {
+		port@1 {
 			port_id = <1>;
 			phy_address = <0>;
 		};
 
-		port@1 {
+		port@2 {
 			port_id = <2>;
 			phy_address = <1>;
 		};
 
-		port@2 {
+		port@4 {
 			port_id = <4>;
 			phy_address = <3>;
 		};
 
-		port@3 {
+		port@5 {
 			port_id = <5>;
 			phy_address = <4>;
 		};
@@ -179,6 +179,10 @@
 		nand-ecc-strength = <4>;
 		nand-ecc-step-size = <512>;
 		nand-bus-width = <8>;
+
+		partitions {
+			compatible = "qcom,smem-part";
+		};
 	};
 };
 
