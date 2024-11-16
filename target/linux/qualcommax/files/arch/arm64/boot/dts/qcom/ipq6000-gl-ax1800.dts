@@ -25,7 +25,7 @@
 };
 
 &switch {
-	switch_lan_bmp = <(ESS_PORT2|ESS_PORT3|ESS_PORT4|ESS_PORT5)>; /* lan port bitmap */
+	switch_lan_bmp = <(ESS_PORT2|ESS_PORT3|ESS_PORT4|ESS_PORT5)>;
 
 	qcom,port_phyinfo {
 		port@3 {

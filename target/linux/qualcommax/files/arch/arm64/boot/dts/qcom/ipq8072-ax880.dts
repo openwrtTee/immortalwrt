@@ -82,7 +82,7 @@
 		};
 	};
 
-	button_pins: button_pins {
+	button_pins: button-pins {
 		reset_button {
 			pins = "gpio57";
 			function = "gpio";
@@ -349,10 +349,10 @@
 &switch {
 	status = "okay";
 
-	switch_lan_bmp = <ESS_PORT6>; /* lan port bitmap */
-	switch_wan_bmp = <ESS_PORT5>; /* wan port bitmap */
-	switch_mac_mode1 = <MAC_MODE_SGMII_CHANNEL0>; /* mac mode for uniphy instance1*/
-	switch_mac_mode2 = <MAC_MODE_SGMII_CHANNEL0>; /* mac mode for uniphy instance2*/
+	switch_lan_bmp = <ESS_PORT6>;
+	switch_wan_bmp = <ESS_PORT5>;
+	switch_mac_mode1 = <MAC_MODE_SGMII_CHANNEL0>;
+	switch_mac_mode2 = <MAC_MODE_SGMII_CHANNEL0>;
 
 	qcom,port_phyinfo {
 		port@5 {

@@ -19,7 +19,7 @@ ipq60xx_setup_interfaces()
 		ucidef_set_interface_lan "lan1 lan2" "dhcp"
 		;;
 	netgear,wax214)
-		ucidef_set_interfaces_lan_wan "lan"
+		ucidef_set_interface_lan "lan" "dhcp"
 		;;
 	glinet,gl-ax1800|\
 	jdcloud,re-cs-02|\

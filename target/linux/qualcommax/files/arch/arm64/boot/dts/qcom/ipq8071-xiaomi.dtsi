@@ -244,9 +244,9 @@
 &switch {
 	status = "okay";
 
-	switch_lan_bmp = <(ESS_PORT3 | ESS_PORT4 | ESS_PORT5)>; /* lan port bitmap */
-	switch_wan_bmp = <ESS_PORT2>; /* wan port bitmap */
-	switch_mac_mode = <MAC_MODE_PSGMII>; /* mac mode for uniphy instance0*/
+	switch_lan_bmp = <(ESS_PORT3 | ESS_PORT4 | ESS_PORT5)>;
+	switch_wan_bmp = <ESS_PORT2>;
+	switch_mac_mode = <MAC_MODE_PSGMII>;
 
 	qcom,port_phyinfo {
 		port@2 {

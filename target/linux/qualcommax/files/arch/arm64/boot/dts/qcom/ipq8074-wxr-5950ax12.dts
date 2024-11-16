@@ -221,8 +221,8 @@
 	 * Multiple entries in reset-gpios of mdio may not be supported, but
 	 * leave the following as-is to show that the those reset pin exists.
 	 */
-	reset-gpios = <&tlmm 37 GPIO_ACTIVE_LOW>, /* QCA8075 RESET */
-		      <&tlmm 63 GPIO_ACTIVE_LOW>; /* AQR113C RESET (2x) */
+	reset-gpios = <&tlmm 37 GPIO_ACTIVE_LOW>,
+		      <&tlmm 63 GPIO_ACTIVE_LOW>;
 
 	aqr113c_1: ethernet-phy@0 {
 		compatible = "ethernet-phy-ieee802.3-c45";

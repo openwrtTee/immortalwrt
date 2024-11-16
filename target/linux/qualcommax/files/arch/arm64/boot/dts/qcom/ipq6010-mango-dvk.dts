@@ -78,7 +78,7 @@
 		bias-pull-down;
 	};
 
-	led_pins: led_pins {
+	led_pins: led-pins {
 		leds {
 			pins = "gpio66", "gpio67";
 			function = "gpio";
@@ -87,7 +87,7 @@
 		};
 	};
 
-	sd_pins: sd_pins {
+	sd_pins: sd-pins {
 		sd_cd {
 			 pins = "gpio62";
 			 function = "gpio";

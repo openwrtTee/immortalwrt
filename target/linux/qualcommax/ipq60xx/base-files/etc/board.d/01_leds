@@ -19,7 +19,8 @@ zn,m2)
 	;;
 redmi,ax5-jdcloud|\
 jdcloud,re-ss-01|\
-jdcloud,re-cs-02)
+jdcloud,re-cs-02|\
+jdcloud,re-cs-07)
 	ucidef_set_led_netdev "wan" "WAN" "green:wan" "wan" "link"
 	;;
 yuncore,fap650)

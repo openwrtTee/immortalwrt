@@ -121,7 +121,7 @@
 		bias-pull-down;
 	};
 
-	led_pins: led_pins {
+	led_pins: led-pins {
 		leds {
 			pins = "gpio35", "gpio37", "gpio50";
 			function = "gpio";

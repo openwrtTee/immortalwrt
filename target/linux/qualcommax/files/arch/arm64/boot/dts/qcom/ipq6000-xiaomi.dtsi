@@ -69,7 +69,7 @@
 };
 
 &tlmm {
-	leds_pins: leds_pins {
+	leds_pins: leds-pins {
 		mux {
 			pins = "gpio29", "gpio30", "gpio31", "gpio32";
 			function = "gpio";
@@ -78,7 +78,7 @@
 		};
 	};
 
-	button_pins: button_pins {
+	button_pins: button-pins {
 		reset_button {
 			pins = "gpio19";
 			function = "gpio";

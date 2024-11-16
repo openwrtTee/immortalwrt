@@ -23,7 +23,7 @@
 		qcom,cpr-idle-cycles = <15>;
 		qcom,cpr-step-quot-init-min = <12>;
 		qcom,cpr-step-quot-init-max = <14>;
-		qcom,cpr-count-mode = <0>;		/* All-at-once */
+		qcom,cpr-count-mode = <0>;
 		qcom,cpr-count-repeat = <14>;
 		qcom,cpr-down-error-step-limit = <1>;
 		qcom,cpr-up-error-step-limit = <1>;
@@ -209,7 +209,7 @@
 				qcom,cpr-open-loop-voltage-fuse-adjustment-v2-0=
 					<40000   40000>;
 
-				 /* TT/SS parts i.e turbo OL voltage > 832 mV */
+				
 				qcom,cpr-open-loop-voltage-fuse-adjustment-v2-1=
 					<40000   40000>;
 

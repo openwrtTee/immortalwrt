@@ -34,6 +34,8 @@
 
 	keys {
 		compatible = "gpio-keys";
+		pinctrl-0 = <&button_pins>;
+		pinctrl-names = "default";
 
 		reset {
 			label = "reset";
@@ -145,7 +147,7 @@
 		};
 	};
 
-	button_pins: button_pins {
+	button_pins: button-pins {
 		reset_button {
 			pins = "gpio66";
 			function = "gpio";
@@ -387,11 +389,11 @@
 &switch {
 	status = "okay";
 
-	switch_lan_bmp = <(ESS_PORT2 | ESS_PORT3 | ESS_PORT4)>; /* lan port bitmap */
-	switch_wan_bmp = <ESS_PORT6>; /* wan port bitmap */
-	switch_mac_mode = <MAC_MODE_PSGMII>; /* mac mode for uniphy instance0*/
-	switch_mac_mode1 = <MAC_MODE_SGMII_CHANNEL0>; /* mac mode for uniphy instance1*/
-	switch_mac_mode2 = <MAC_MODE_SGMII_CHANNEL0>; /* mac mode for uniphy instance2*/
+	switch_lan_bmp = <(ESS_PORT2 | ESS_PORT3 | ESS_PORT4)>;
+	switch_wan_bmp = <ESS_PORT6>;
+	switch_mac_mode = <MAC_MODE_PSGMII>;
+	switch_mac_mode1 = <MAC_MODE_SGMII_CHANNEL0>;
+	switch_mac_mode2 = <MAC_MODE_SGMII_CHANNEL0>;
 
 	qcom,port_phyinfo {
 		port@2 {

@@ -37,7 +37,7 @@
 		qcom,cpr-idle-cycles = <15>;
 		qcom,cpr-step-quot-init-min = <0>;
 		qcom,cpr-step-quot-init-max = <15>;
-		qcom,cpr-count-mode = <0>;		/* All-at-once */
+		qcom,cpr-count-mode = <0>;
 		qcom,cpr-count-repeat = <1>;
 		qcom,cpr-down-error-step-limit = <1>;
 		qcom,cpr-up-error-step-limit = <1>;

@@ -24,6 +24,8 @@
 
 	keys {
 		compatible = "gpio-keys";
+		pinctrl-0 = <&button_pins>;
+		pinctrl-names = "default";
 
 		reset {
 			label = "reset";
