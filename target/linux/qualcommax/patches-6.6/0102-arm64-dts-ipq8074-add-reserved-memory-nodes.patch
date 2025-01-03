@@ -1,33 +1,40 @@
 --- a/arch/arm64/boot/dts/qcom/ipq8074.dtsi
 +++ b/arch/arm64/boot/dts/qcom/ipq8074.dtsi
-@@ -108,6 +108,39 @@
+@@ -86,6 +86,11 @@
+ 		#size-cells = <2>;
+ 		ranges;
+ 
++		tzapp@4a400000 {
++			reg = <0x0 0x4a400000 0x0 0x200000>;
++			no-map;
++		};
++
+ 		bootloader@4a600000 {
+ 			reg = <0x0 0x4a600000 0x0 0x400000>;
+ 			no-map;
+@@ -108,6 +113,34 @@
  			reg = <0x0 0x4ac00000 0x0 0x400000>;
  			no-map;
  		};
 +
-+		tzapp_region: tzapp@4b000000 {
-+			reg = <0x0 0x4b000000 0x0 0x400000>;
++		q6_region: q6@4b000000 {
++			reg = <0x0 0x4b000000 0x0 0x6000000>;
 +			no-map;
 +		};
 +
-+		q6_region: q6@4b400000 {
-+			reg = <0x0 0x4b400000 0x0 0x6000000>;
++		q6_etr_region: q6_etr@51000000 {
++			reg = <0x0 0x51000000 0x0 0x100000>;
 +			no-map;
 +		};
 +
-+		q6_etr_region: q6_etr@51400000 {
-+			reg = <0x0 0x51400000 0x0 0x100000>;
++		m3_dump_region: m3_dump@51100000 {
++			reg = <0x0 0x51100000 0x0 0x100000>;
 +			no-map;
 +		};
 +
-+		m3_dump_region: m3_dump@51500000 {
-+			reg = <0x0 0x51500000 0x0 0x100000>;
-+			no-map;
-+		};
-+
-+		ramoops_region: ramoops@51600000 {
++		ramoops_region: ramoops@51200000 {
 +			compatible = "ramoops";
-+			reg = <0x0 0x51600000 0x0 0x100000>;
++			reg = <0x0 0x51200000 0x0 0x100000>;
 +			no-map;
 +			record-size = <0x4000>;
 +			console-size = <0x4000>;

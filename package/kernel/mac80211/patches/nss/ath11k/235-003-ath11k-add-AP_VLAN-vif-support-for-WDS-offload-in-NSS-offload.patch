@@ -38,9 +38,9 @@ Signed-off-by: Sathishkumar Muruganandam <murugana@codeaurora.org>
  	struct arvif_nss nss;
  #endif
 +	struct list_head ap_vlan_arvifs;
- 
  	/* Must be last - ends in a flexible-array member.
  	 *
+ 	 * FIXME: Driver should not copy struct ieee80211_chanctx_conf,
 --- a/drivers/net/wireless/ath/ath11k/mac.c
 +++ b/drivers/net/wireless/ath/ath11k/mac.c
 @@ -4844,6 +4844,11 @@ static void ath11k_sta_rc_update_wk(stru
