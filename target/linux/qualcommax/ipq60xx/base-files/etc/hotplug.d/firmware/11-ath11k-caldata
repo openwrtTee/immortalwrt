@@ -21,13 +21,16 @@ case "$FIRMWARE" in
 	linksys,mr7350|\
 	linksys,mr7500|\
 	netgear,wax214|\
+	netgear,wax610|\
+	netgear,wax610y|\
 	qihoo,360v6|\
 	redmi,ax5|\
 	xiaomi,ax1800|\
 	zn,m2)
 		caldata_extract "0:art" 0x1000 0x10000
 		;;
-	tplink,eap610-outdoor)
+	tplink,eap610od|\
+	tplink,eap623od-hd-v1)
 		caldata_from_file "/tmp/factory_data/radio" 0 0x10000
 		;;
 	yuncore,fap650)
