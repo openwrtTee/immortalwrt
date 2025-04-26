@@ -30,6 +30,7 @@ case "$FIRMWARE" in
 	qnap,301w|\
 	redmi,ax6|\
 	redmi,ax6-stock|\
+	tplink,deco-x80-5g|\
 	xiaomi,ax3600|\
 	xiaomi,ax3600-stock|\
 	xiaomi,ax9000|\
