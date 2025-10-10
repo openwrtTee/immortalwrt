@@ -114,7 +114,7 @@ define Device/zyxel_xgs1210-12-a1
 endef
 TARGET_DEVICES += zyxel_xgs1210-12-a1
 
-define Device/zyxel_xgs1250-12
+define Device/zyxel_xgs1250-12-common
   SOC := rtl9302
   UIMAGE_MAGIC := 0x93001250
   ZYXEL_VERS := ABWE
@@ -129,4 +129,16 @@ define Device/zyxel_xgs1250-12
 	zyxel-vers | \
 	uImage gzip
 endef
-TARGET_DEVICES += zyxel_xgs1250-12
+
+define Device/zyxel_xgs1250-12-a1
+  $(Device/zyxel_xgs1250-12-common)
+  SUPPORTED_DEVICES += zyxel,xgs1250-12
+  DEVICE_VARIANT := A1
+endef
+TARGET_DEVICES += zyxel_xgs1250-12-a1
+
+define Device/zyxel_xgs1250-12-b1
+  $(Device/zyxel_xgs1250-12-common)
+  DEVICE_VARIANT := B1
+endef
+TARGET_DEVICES += zyxel_xgs1250-12-b1

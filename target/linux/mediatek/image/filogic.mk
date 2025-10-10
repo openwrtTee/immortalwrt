@@ -227,6 +227,24 @@ define Device/acer_vero-w6m
 endef
 TARGET_DEVICES += acer_vero-w6m
 
+define Device/asiarf_ap7986-003
+  DEVICE_VENDOR := AsiaRF
+  DEVICE_MODEL := AP7986 003
+  DEVICE_DTS := mt7986a-asiarf-ap7986-003
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  IMAGE_SIZE := 65536k
+  KERNEL_IN_UBI := 1
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-ubi | check-size $$$$(IMAGE_SIZE)
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  KERNEL := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
+endef
+TARGET_DEVICES += asiarf_ap7986-003
+
 define Device/adtran_smartrg
   DEVICE_VENDOR := Adtran
   DEVICE_DTS_DIR := ../dts
@@ -588,6 +606,19 @@ endif
 endef
 TARGET_DEVICES += bananapi_bpi-r4-poe
 
+define Device/buffalo_wsr-6000ax8
+  DEVICE_MODEL := WSR-6000AX8
+  DEVICE_VENDOR := Buffalo
+  DEVICE_ALT0_MODEL := WSR-6000AX8P
+  DEVICE_ALT0_VENDOR := Buffalo
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_DTS := mt7986b-buffalo-wsr-6000ax8
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware
+  IMAGE_SIZE := 26624k
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+TARGET_DEVICES += buffalo_wsr-6000ax8
+
 define Device/cetron_ct3003
   DEVICE_VENDOR := Cetron
   DEVICE_MODEL := CT3003
@@ -744,11 +775,11 @@ define Device/cmcc_rax3000me
 	emmc-ddr4-preloader.bin emmc-ddr4-bl31-uboot.fip \
 	nand-ddr3-preloader.bin nand-ddr3-bl31-uboot.fip \
 	nand-ddr4-preloader.bin nand-ddr4-bl31-uboot.fip
-  ARTIFACT/emmc-ddr3-preloader.bin := mt7981-bl2 emmc-ddr3
+  ARTIFACT/emmc-ddr3-preloader.bin := mt7981-bl2 emmc-ddr3-1866mhz
   ARTIFACT/emmc-ddr3-bl31-uboot.fip := mt7981-bl31-uboot cmcc_rax3000me-emmc-ddr3
   ARTIFACT/emmc-ddr4-preloader.bin := mt7981-bl2 emmc-ddr4
   ARTIFACT/emmc-ddr4-bl31-uboot.fip := mt7981-bl31-uboot cmcc_rax3000me-emmc-ddr4
-  ARTIFACT/nand-ddr3-preloader.bin := mt7981-bl2 spim-nand-ddr3
+  ARTIFACT/nand-ddr3-preloader.bin := mt7981-bl2 spim-nand-ddr3-1866mhz
   ARTIFACT/nand-ddr3-bl31-uboot.fip := mt7981-bl31-uboot cmcc_rax3000me-nand-ddr3
   ARTIFACT/nand-ddr4-preloader.bin := mt7981-bl2 spim-nand-ddr4
   ARTIFACT/nand-ddr4-bl31-uboot.fip := mt7981-bl31-uboot cmcc_rax3000me-nand-ddr4
@@ -804,7 +835,9 @@ define Device/creatlentem_clt-r30b1-common
   DEVICE_ALT0_VENDOR := EDUP
   DEVICE_ALT0_MODEL := RT2980
   DEVICE_ALT1_VENDOR := Dragonglass
-  DEVICE_ALT1_MODEL := DXG21
+  DEVICE_ALT1_MODEL := DGX21
+  DEVICE_ALT2_VENDOR := Livinet
+  DEVICE_ALT2_MODEL := Li228
   DEVICE_DTS_DIR := ../dts
   DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
   UBINIZE_OPTS := -E 5
@@ -818,6 +851,7 @@ define Device/creatlentem_clt-r30b1-112m
   DEVICE_VARIANT := 112M
   DEVICE_ALT0_VARIANT := 112M
   DEVICE_ALT1_VARIANT := 112M
+  DEVICE_ALT2_VARIANT := 112M
   DEVICE_DTS := mt7981b-creatlentem-clt-r30b1-112m
   SUPPORTED_DEVICES += clt,r30b1 clt,r30b1-112m
   IMAGE_SIZE := 114688k
@@ -1535,11 +1569,11 @@ define Device/konka_komi-a31
   UBOOTENV_IN_UBI := 1
   IMAGES := sysupgrade.itb
   KERNEL_INITRAMFS_SUFFIX := -recovery.itb
-  KERNEL := kernel-bin | gzip
+  KERNEL := kernel-bin | lzma
   KERNEL_INITRAMFS := kernel-bin | lzma | \
         fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
   IMAGE/sysupgrade.itb := append-kernel | \
-        fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-static-with-rootfs | append-metadata
+        fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-static-with-rootfs | append-metadata
   ARTIFACTS := preloader.bin bl31-uboot.fip \
 	emmc-gpt.bin emmc-preloader.bin emmc-bl31-uboot.fip \
 	nor-preloader.bin nor-bl31-uboot.fip
@@ -2175,6 +2209,17 @@ define Device/tenbay_wr3000k
         fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd
 endef
 TARGET_DEVICES += tenbay_wr3000k
+
+define Device/totolink_x6000r
+  DEVICE_VENDOR := TOTOLINK
+  DEVICE_MODEL := X6000R
+  DEVICE_DTS := mt7981b-totolink-x6000r
+  DEVICE_DTS_DIR := ../dts
+  IMAGES := sysupgrade.bin
+  IMAGE_SIZE := 14336k
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
+endef
+TARGET_DEVICES += totolink_x6000r
 
 define Device/tplink_archer-ax80-v1
   DEVICE_VENDOR := TP-Link
