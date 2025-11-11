@@ -86,10 +86,12 @@ platform_do_upgrade() {
 	bananapi,bpi-r4|\
 	bananapi,bpi-r4-2g5|\
 	bananapi,bpi-r4-poe|\
+	bananapi,bpi-r4-lite|\
 	cetron,ct3003-ubootmod|\
 	cmcc,a10-ubootmod|\
 	cmcc,rax3000m|\
 	cmcc,rax3000me|\
+	comfast,cf-wr632ax-ubootmod|\
 	cudy,tr3000-v1-ubootmod|\
 	gatonetworks,gdsp|\
 	h3c,magic-nx30-pro|\
@@ -188,6 +190,7 @@ platform_do_upgrade() {
 	mercusys,mr80x-v3|\
 	mercusys,mr90x-v1|\
 	tplink,archer-ax80-v1|\
+	tplink,be450|\
 	tplink,re6000xd)
 		CI_UBIPART="ubi0"
 		nand_do_upgrade "$1"
@@ -259,10 +262,12 @@ platform_check_image() {
 	bananapi,bpi-r4|\
 	bananapi,bpi-r4-2g5|\
 	bananapi,bpi-r4-poe|\
+	bananapi,bpi-r4-lite|\
 	cetron,ct3003-ubootmod|\
 	cmcc,a10-ubootmod|\
 	cmcc,rax3000m|\
 	cmcc,rax3000me|\
+	comfast,cf-wr632ax-ubootmod|\
 	cudy,tr3000-v1-ubootmod|\
 	gatonetworks,gdsp|\
 	h3c,magic-nx30-pro|\
@@ -345,6 +350,7 @@ platform_copy_config() {
 	bananapi,bpi-r4|\
 	bananapi,bpi-r4-2g5|\
 	bananapi,bpi-r4-poe|\
+	bananapi,bpi-r4-lite|\
 	cmcc,rax3000m|\
 	cmcc,rax3000me|\
 	gatonetworks,gdsp|\
