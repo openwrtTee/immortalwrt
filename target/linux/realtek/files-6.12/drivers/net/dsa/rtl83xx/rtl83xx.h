@@ -20,7 +20,9 @@ struct fdb_update_work {
 enum mib_reg {
 	MIB_REG_INVALID = 0,
 	MIB_REG_STD,
-	MIB_REG_PRV
+	MIB_REG_PRV,
+	MIB_TBL_STD,
+	MIB_TBL_PRV,
 };
 
 #define MIB_ITEM(_reg, _offset, _size) \
@@ -204,8 +206,5 @@ void rtl9300_dump_debug(void);
 void rtl930x_pie_rule_dump_raw(u32 r[]);
 
 void rtl931x_print_matrix(void);
-
-void rtldsa_930x_set_receive_management_action(int port, rma_ctrl_t type, action_type_t action);
-void rtldsa_931x_set_receive_management_action(int port, rma_ctrl_t type, action_type_t action);
 
 #endif /* _NET_DSA_RTL83XX_H */
