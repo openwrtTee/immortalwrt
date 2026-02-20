@@ -33,6 +33,13 @@ define Build/wax6xx-netgear-tar
 	rm -rf $@.tmp
 endef
 
+define Build/zyxel-nwa210ax-fit
+	$(TOPDIR)/scripts/mkits-zyxel-fit-filogic.sh \
+		$@.its $@ "5c e1 ff ff ff ff ff ff ff ff"
+	PATH=$(LINUX_DIR)/scripts/dtc:$(PATH) mkimage -f $@.its $@.new
+	@mv $@.new $@
+endef
+
 define Device/aliyun_ap8220
 	$(call Device/FitImage)
 	$(call Device/UbiFit)
@@ -396,6 +403,21 @@ define Device/spectrum_sax1v1k
 endef
 TARGET_DEVICES += spectrum_sax1v1k
 
+define Device/tcl_linkhub-hh500v
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_VENDOR := TCL
+	DEVICE_MODEL := LINKHUB HH500V
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	SOC := ipq8072
+	DEVICE_DTS_CONFIG := config@hk09
+	DEVICE_PACKAGES := ipq-wifi-tcl_linkhub-hh500v kmod-mhi-pci-generic kmod-mhi-wwan-ctrl kmod-mhi-wwan-mbim
+	IMAGES += factory.bin
+	IMAGE/factory.bin := append-ubi | qsdk-ipq-factory-nand
+endef
+TARGET_DEVICES += tcl_linkhub-hh500v
+
 define Device/tplink_deco-x80-5g
 	$(call Device/FitImage)
 	$(call Device/UbiFit)
@@ -573,13 +595,27 @@ define Device/zyxel_nbg7815
 endef
 TARGET_DEVICES += zyxel_nbg7815
 
+define Device/zyxel_nwa210ax
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_VENDOR := ZYXEL
+	DEVICE_MODEL := NWA210AX
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	SOC := ipq8071
+	DEVICE_DTS_CONFIG := config@ac02
+	DEVICE_PACKAGES := ipq-wifi-zyxel_nwa210ax zyxel-bootconfig-ipq807x kmod-leds-lp5562
+	IMAGE_SIZE := 61440k
+	IMAGES += factory.bin
+	IMAGE/factory.bin := append-ubi | check-size $$$$(IMAGE_SIZE) | zyxel-nwa210ax-fit
+endef
+TARGET_DEVICES += zyxel_nwa210ax
+
 define Device/verizon_cr1000a
 	$(call Device/FitImage)
 	$(call Device/EmmcImage)
 	DEVICE_VENDOR := Verizon
 	DEVICE_MODEL := CR1000A
-	BLOCKSIZE := 128k
-	PAGESIZE := 2048
 	SOC := ipq8072
 	DEVICE_DTS_CONFIG := config@verizon_cr1000a
 	DEVICE_PACKAGES := ipq-wifi-verizon_cr1000a ath11k-firmware-qcn9074 kmod-phy-realtek

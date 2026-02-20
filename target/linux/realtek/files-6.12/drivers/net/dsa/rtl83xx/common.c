@@ -16,48 +16,22 @@
 
 #include "rtl83xx.h"
 
-extern struct rtl83xx_soc_info soc_info;
+struct phylink_pcs *rtpcs_create(struct device *dev, struct device_node *np, int port);
 
-extern const struct rtl838x_reg rtl838x_reg;
-extern const struct rtl838x_reg rtl839x_reg;
-extern const struct rtl838x_reg rtl930x_reg;
-extern const struct rtl838x_reg rtl931x_reg;
-
-extern const struct dsa_switch_ops rtl83xx_switch_ops;
-extern const struct dsa_switch_ops rtl93xx_switch_ops;
-
-extern struct phylink_pcs *rtpcs_create(struct device *dev, struct device_node *np, int port);
-
-int rtl83xx_port_get_stp_state(struct rtl838x_switch_priv *priv, int port)
+int rtldsa_port_get_stp_state(struct rtl838x_switch_priv *priv, int port)
 {
+	u32 table[4];
 	u32 msti = 0;
-	u32 port_state[4];
-	int index, bit;
-	int pos = port;
-	int n = priv->port_width << 1;
+	int state;
 
-	/* Ports above or equal CPU port can never be configured */
 	if (port >= priv->cpu_port)
-		return -1;
+		return -EINVAL;
 
 	mutex_lock(&priv->reg_mutex);
-
-	/* For the RTL839x and following, the bits are left-aligned in the 64/128 bit field */
-	if (priv->family_id == RTL8390_FAMILY_ID)
-		pos += 12;
-	if (priv->family_id == RTL9300_FAMILY_ID)
-		pos += 3;
-	if (priv->family_id == RTL9310_FAMILY_ID)
-		pos += 8;
-
-	index = n - (pos >> 4) - 1;
-	bit = (pos << 1) % 32;
-
-	priv->r->stp_get(priv, msti, port_state);
-
+	state = priv->r->stp_get(priv, msti, port, table);
 	mutex_unlock(&priv->reg_mutex);
 
-	return (port_state[index] >> bit) & 3;
+	return state;
 }
 
 static struct table_reg rtl838x_tbl_regs[] = {
@@ -99,7 +73,7 @@ struct table_reg *rtl_table_get(rtl838x_tbl_reg_t r, int t)
 	if (r >= RTL_TBL_END)
 		return NULL;
 
-	if (t >= BIT(rtl838x_tbl_regs[r].c_bit-rtl838x_tbl_regs[r].t_bit))
+	if (t >= BIT(rtl838x_tbl_regs[r].c_bit - rtl838x_tbl_regs[r].t_bit))
 		return NULL;
 
 	mutex_lock(&rtl838x_tbl_regs[r].lock);
@@ -265,33 +239,24 @@ static int rtldsa_bus_c45_write(struct mii_bus *bus, int addr, int devad, int re
 	return mdiobus_c45_write_nested(priv->parent_bus, addr, devad, regnum, val);
 }
 
-static int __init rtl83xx_mdio_probe(struct rtl838x_switch_priv *priv)
+static int rtl83xx_mdio_probe(struct rtl838x_switch_priv *priv)
 {
-	struct device_node *dn, *phy_node, *pcs_node, *led_node, *np, *mii_np;
+	struct device_node *dn, *phy_node, *pcs_node, *led_node;
 	struct device *dev = priv->dev;
 	struct mii_bus *bus;
 	int ret;
 	u32 pn;
 
-	np = of_find_compatible_node(NULL, NULL, "realtek,otto-mdio");
-	if (!np) {
-		dev_err(priv->dev, "mdio controller node not found");
+	dn = of_find_compatible_node(NULL, NULL, "realtek,otto-mdio");
+	if (!dn)
 		return -ENODEV;
-	}
 
-	mii_np = of_get_child_by_name(np, "mdio-bus");
-	if (!mii_np) {
-		dev_err(priv->dev, "mdio-bus subnode not found");
-		return -ENODEV;
-	}
-
-	priv->parent_bus = of_mdio_find_bus(mii_np);
-	if (!priv->parent_bus) {
-		dev_dbg(priv->dev, "Deferring probe of mdio bus\n");
-		return -EPROBE_DEFER;
-	}
-	if (!of_device_is_available(mii_np))
+	if (!of_device_is_available(dn))
 		ret = -ENODEV;
+
+	priv->parent_bus = of_mdio_find_bus(dn);
+	if (!priv->parent_bus)
+		return -EPROBE_DEFER;
 
 	bus = devm_mdiobus_alloc(priv->ds->dev);
 	if (!bus)
@@ -310,12 +275,10 @@ static int __init rtl83xx_mdio_probe(struct rtl838x_switch_priv *priv)
 	priv->ds->user_mii_bus->priv = priv;
 
 	ret = mdiobus_register(priv->ds->user_mii_bus);
-	if (ret && mii_np) {
-		of_node_put(dn);
+	if (ret)
 		return ret;
-	}
 
-	dn = of_find_compatible_node(NULL, NULL, "realtek,rtl83xx-switch");
+	dn = of_find_compatible_node(NULL, NULL, "realtek,otto-switch");
 	if (!dn) {
 		dev_err(priv->dev, "No RTL switch node in DTS\n");
 		return -ENODEV;
@@ -341,12 +304,14 @@ static int __init rtl83xx_mdio_probe(struct rtl838x_switch_priv *priv)
 			continue;
 		}
 
-		priv->pcs[pn] = rtpcs_create(priv->dev, pcs_node, pn);
-		if (IS_ERR(priv->pcs[pn])) {
-			dev_err(priv->dev, "port %u failed to create PCS instance: %ld\n",
-				pn, PTR_ERR(priv->pcs[pn]));
-			priv->pcs[pn] = NULL;
-			continue;
+		if (pcs_node) {
+			priv->pcs[pn] = rtpcs_create(priv->dev, pcs_node, pn);
+			if (IS_ERR(priv->pcs[pn])) {
+				dev_err(priv->dev, "port %u failed to create PCS instance: %ld\n",
+					pn, PTR_ERR(priv->pcs[pn]));
+				priv->pcs[pn] = NULL;
+				continue;
+			}
 		}
 
 		if (of_get_phy_mode(dn, &interface))
@@ -366,6 +331,7 @@ static int __init rtl83xx_mdio_probe(struct rtl838x_switch_priv *priv)
 			sprintf(led_set_str, "led_set%d", led_set);
 			priv->ports[pn].leds_on_this_port = of_property_count_u32_elems(led_node, led_set_str);
 			if (priv->ports[pn].leds_on_this_port > 4) {
+				of_node_put(dn);
 				dev_err(priv->dev, "led_set %d for port %d configuration is invalid\n", led_set, pn);
 				return -ENODEV;
 			}
@@ -375,14 +341,6 @@ static int __init rtl83xx_mdio_probe(struct rtl838x_switch_priv *priv)
 			if (priv->pcs[pn])
 				priv->ports[pn].phy_is_integrated = true;
 
-			continue;
-		}
-
-		/* Check for the integrated SerDes of the RTL8380M first */
-		if (of_property_read_bool(phy_node, "phy-is-integrated")
-		    && priv->id == 0x8380 && pn >= 24) {
-			pr_debug("----> FOUND A SERDES\n");
-			priv->ports[pn].phy = PHY_RTL838X_SDS;
 			continue;
 		}
 
@@ -408,26 +366,14 @@ static int __init rtl83xx_mdio_probe(struct rtl838x_switch_priv *priv)
 	/* Disable MAC polling the PHY so that we can start configuration */
 	priv->r->set_port_reg_le(0ULL, priv->r->smi_poll_ctrl);
 
-	/* Enable PHY control via SoC */
-	if (priv->family_id == RTL8380_FAMILY_ID) {
-		/* Enable SerDes NWAY and PHY control via SoC */
-		sw_w32_mask(BIT(7), BIT(15), RTL838X_SMI_GLB_CTRL);
-	} else if (priv->family_id == RTL8390_FAMILY_ID) {
-		/* Disable PHY polling via SoC */
+	/* Disable PHY polling via SoC */
+	if (priv->family_id == RTL8390_FAMILY_ID)
 		sw_w32_mask(BIT(7), 0, RTL839X_SMI_GLB_CTRL);
-	}
-
-	/* Power on fibre ports and reset them if necessary */
-	if (priv->ports[24].phy == PHY_RTL838X_SDS) {
-		pr_debug("Powering on fibre ports & reset\n");
-		rtl8380_sds_power(24, 1);
-		rtl8380_sds_power(26, 1);
-	}
 
 	return 0;
 }
 
-static int __init rtl83xx_get_l2aging(struct rtl838x_switch_priv *priv)
+static int rtl83xx_get_l2aging(struct rtl838x_switch_priv *priv)
 {
 	int t = sw_r32(priv->r->l2_ctrl_1);
 
@@ -461,7 +407,7 @@ int rtl83xx_lag_add(struct dsa_switch *ds, int group, int port, struct netdev_la
 		return -ENOSPC;
 	}
 
-	switch(info->hash_type) {
+	switch (info->hash_type) {
 	case NETDEV_LAG_HASH_L2:
 		algomsk |= TRUNK_DISTRIBUTION_ALGO_DMAC_BIT;
 		algomsk |= TRUNK_DISTRIBUTION_ALGO_SMAC_BIT;
@@ -488,7 +434,7 @@ int rtl83xx_lag_add(struct dsa_switch *ds, int group, int port, struct netdev_la
 	priv->lags_port_members[group] |= BIT_ULL(port);
 
 	pr_info("%s: Added port %d to LAG %d. Members now %016llx.\n",
-		 __func__, port, group, priv->lags_port_members[group]);
+		__func__, port, group, priv->lags_port_members[group]);
 
 	return 0;
 }
@@ -513,7 +459,7 @@ int rtl83xx_lag_del(struct dsa_switch *ds, int group, int port)
 	priv->lags_port_members[group] &= ~BIT_ULL(port);
 
 	pr_info("%s: Removed port %d from LAG %d. Members now %016llx.\n",
-		 __func__, port, group, priv->lags_port_members[group]);
+		__func__, port, group, priv->lags_port_members[group]);
 
 	return 0;
 }
@@ -587,7 +533,7 @@ static int rtl83xx_l2_nexthop_add(struct rtl838x_switch_priv *priv, struct rtl83
 	u64 entry;
 
 	pr_debug("%s searching for %08llx vid %d with key %d, seed: %016llx\n",
-		__func__, nh->mac, nh->rvid, key, seed);
+		 __func__, nh->mac, nh->rvid, key, seed);
 
 	e.type = L2_UNICAST;
 	u64_to_ether_addr(nh->mac, &e.mac[0]);
@@ -669,7 +615,7 @@ static int rtl83xx_l2_nexthop_rm(struct rtl838x_switch_priv *priv, struct rtl83x
 	return 0;
 }
 
-int rtl83xx_port_is_under(const struct net_device * dev, struct rtl838x_switch_priv *priv)
+int rtl83xx_port_is_under(const struct net_device *dev, struct rtl838x_switch_priv *priv)
 {
 	/* Is the lower network device a DSA user network device of our RTL930X-switch?
 	 * Unfortunately we cannot just follow dev->dsa_prt as this is only set for the
@@ -712,7 +658,7 @@ static int rtl83xx_l3_nexthop_update(struct rtl838x_switch_priv *priv,  __be32 i
 
 	rhl_for_each_entry_rcu(r, tmp, list, linkage) {
 		pr_debug("%s: Setting up fwding: ip %pI4, GW mac %016llx\n",
-			__func__, &ip_addr, mac);
+			 __func__, &ip_addr, mac);
 
 		/* Reads the ROUTING table entry associated with the route */
 		priv->r->route_read(r->id, r);
@@ -763,6 +709,7 @@ static int rtl83xx_l3_nexthop_update(struct rtl838x_switch_priv *priv,  __be32 i
 			priv->r->pie_rule_add(priv, &r->pr);
 		} else {
 			int pkts = priv->r->packet_cntr_read(r->pr.packet_cntr);
+
 			pr_debug("%s: total packets: %d\n", __func__, pkts);
 
 			priv->r->pie_rule_write(priv, r->pr.id, &r->pr);
@@ -880,7 +827,6 @@ out_free:
 	return NULL;
 }
 
-
 static struct rtl83xx_route *rtl83xx_host_route_alloc(struct rtl838x_switch_priv *priv, u32 ip)
 {
 	struct rtl83xx_route *r;
@@ -967,7 +913,7 @@ static int rtldsa_fib4_check(struct rtl838x_switch_priv *priv,
 	dev_info(priv->dev, "%s IPv4 route %pI4/%d %s(VLAN %d, MAC %pM)\n",
 		 event == FIB_EVENT_ENTRY_ADD ? "add" : "delete",
 		 &info->dst, info->dst_len, gw_message, vlan, ndev->dev_addr);
-		 
+
 	if ((info->type == RTN_BROADCAST) || ipv4_is_loopback(info->dst) || !info->dst) {
 		dev_warn(priv->dev, "skip loopback/broadcast addresses and default routes\n");
 		return -EINVAL;
@@ -1048,7 +994,7 @@ static int rtl83xx_alloc_router_mac(struct rtl838x_switch_priv *priv, u64 mac)
 	m.p_id = 0x3f;			/* Listen on any port */
 	m.p_id_mask = 0;
 	m.vid = 0;			/* Listen on any VLAN... */
-	m.vid_mask = 0; 		/* ... so mask needs to be 0 */
+	m.vid_mask = 0;			/* ... so mask needs to be 0 */
 	m.mac_mask = 0xffffffffffffULL;	/* We want an exact match of the interface MAC */
 	m.action = L3_FORWARD;		/* Route the packet */
 	priv->r->set_l3_router_mac(free_mac, &m);
@@ -1101,7 +1047,7 @@ static int rtl83xx_alloc_egress_intf(struct rtl838x_switch_priv *priv, u64 mac, 
 }
 
 static int rtldsa_fib4_add(struct rtl838x_switch_priv *priv,
-			    struct fib_entry_notifier_info *info)
+			   struct fib_entry_notifier_info *info)
 {
 	struct net_device *ndev = fib_info_nh(info->fi, 0)->fib_nh_dev;
 	int vlan = is_vlan_dev(ndev) ? vlan_dev_vlan_id(ndev) : 0;
@@ -1203,7 +1149,7 @@ static void rtl83xx_net_event_work_do(struct work_struct *work)
 }
 
 static int rtl83xx_netevent_event(struct notifier_block *this,
-				 unsigned long event, void *ptr)
+				  unsigned long event, void *ptr)
 {
 	struct rtl838x_switch_priv *priv;
 	struct net_device *dev;
@@ -1236,10 +1182,10 @@ static int rtl83xx_netevent_event(struct notifier_block *this,
 		net_work->priv = priv;
 
 		net_work->mac = ether_addr_to_u64(n->ha);
-		net_work->gw_addr = *(__be32 *) n->primary_key;
+		net_work->gw_addr = *(__be32 *)n->primary_key;
 
 		pr_debug("%s: updating neighbour on port %d, mac %016llx\n",
-			__func__, port, net_work->mac);
+			 __func__, port, net_work->mac);
 		queue_work(priv->wq, &net_work->work);
 		if (err)
 			netdev_warn(dev, "failed to handle neigh update (err %d)\n", err);
@@ -1342,15 +1288,15 @@ static int rtl83xx_fib_event(struct notifier_block *this, unsigned long event, v
 
 			if (fen_info->fi->fib_nh_is_v6) {
 				NL_SET_ERR_MSG_MOD(info->extack,
-					"IPv6 gateway with IPv4 route is not supported");
+						   "IPv6 gateway with IPv4 route is not supported");
 				kfree(fib_work);
 				return notifier_from_errno(-EINVAL);
 			}
 
 			memcpy(&fib_work->fen_info, ptr, sizeof(fib_work->fen_info));
 			/* Take referece on fib_info to prevent it from being
-			* freed while work is queued. Release it afterwards.
-			*/
+			 * freed while work is queued. Release it afterwards.
+			 */
 			fib_info_hold(fib_work->fen_info.fi);
 
 		} else if (info->family == AF_INET6) {
@@ -1410,10 +1356,10 @@ static int rtldsa_ethernet_loaded(struct platform_device *pdev)
 
 	of_node_put(ports);
 
-	return ret;	
+	return ret;
 }
 
-static int __init rtl83xx_sw_probe(struct platform_device *pdev)
+static int rtl83xx_sw_probe(struct platform_device *pdev)
 {
 	struct rtl838x_switch_priv *priv;
 	struct device *dev = &pdev->dev;
@@ -1425,7 +1371,7 @@ static int __init rtl83xx_sw_probe(struct platform_device *pdev)
 		dev_err(dev, "No DT found\n");
 		return -EINVAL;
 	}
-	
+
 	err = rtldsa_ethernet_loaded(pdev);
 	if (err)
 		return err;
@@ -1443,7 +1389,7 @@ static int __init rtl83xx_sw_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	priv->ds->dev = dev;
 	priv->ds->priv = priv;
-	priv->ds->ops = &rtl83xx_switch_ops;
+	priv->ds->ops = &rtldsa_83xx_switch_ops;
 	priv->ds->needs_standalone_vlan_filtering = true;
 	priv->dev = dev;
 	dev_set_drvdata(dev, priv);
@@ -1456,19 +1402,18 @@ static int __init rtl83xx_sw_probe(struct platform_device *pdev)
 	if (err)
 		return err;
 
+	priv->r = device_get_match_data(&pdev->dev);
 	priv->family_id = soc_info.family;
 	priv->id = soc_info.id;
-	switch(soc_info.family) {
+	switch (soc_info.family) {
 	case RTL8380_FAMILY_ID:
-		priv->ds->ops = &rtl83xx_switch_ops;
+		priv->ds->ops = &rtldsa_83xx_switch_ops;
 		priv->cpu_port = RTL838X_CPU_PORT;
 		priv->port_mask = 0x1f;
 		priv->port_width = 1;
 		priv->irq_mask = 0x0FFFFFFF;
-		priv->r = &rtl838x_reg;
-		priv->ds->num_ports = 29;
+		priv->ds->num_ports = RTL838X_CPU_PORT + 1;
 		priv->fib_entries = 8192;
-		rtl8380_get_version(priv);
 		priv->ds->num_lag_ids = 8;
 		priv->l2_bucket_size = 4;
 		priv->n_mst = 64;
@@ -1477,15 +1422,13 @@ static int __init rtl83xx_sw_probe(struct platform_device *pdev)
 		priv->n_counters = 128;
 		break;
 	case RTL8390_FAMILY_ID:
-		priv->ds->ops = &rtl83xx_switch_ops;
+		priv->ds->ops = &rtldsa_83xx_switch_ops;
 		priv->cpu_port = RTL839X_CPU_PORT;
 		priv->port_mask = 0x3f;
 		priv->port_width = 2;
 		priv->irq_mask = 0xFFFFFFFFFFFFFULL;
-		priv->r = &rtl839x_reg;
-		priv->ds->num_ports = 53;
+		priv->ds->num_ports = RTL839X_CPU_PORT + 1;
 		priv->fib_entries = 16384;
-		rtl8390_get_version(priv);
 		priv->ds->num_lag_ids = 16;
 		priv->l2_bucket_size = 4;
 		priv->n_mst = 256;
@@ -1494,18 +1437,13 @@ static int __init rtl83xx_sw_probe(struct platform_device *pdev)
 		priv->n_counters = 1024;
 		break;
 	case RTL9300_FAMILY_ID:
-		priv->ds->ops = &rtl93xx_switch_ops;
+		priv->ds->ops = &rtldsa_93xx_switch_ops;
 		priv->cpu_port = RTL930X_CPU_PORT;
 		priv->port_mask = 0x1f;
 		priv->port_width = 1;
 		priv->irq_mask = 0x0FFFFFFF;
-		priv->r = &rtl930x_reg;
-		priv->ds->num_ports = 29;
+		priv->ds->num_ports = RTL930X_CPU_PORT + 1;
 		priv->fib_entries = 16384;
-		/* TODO A version based on CHIP_INFO and MODEL_NAME_INFO should
-		 * be constructed. For now, just set it to a static 'A'
-		 */
-		priv->version = RTL8390_VERSION_A;
 		priv->ds->num_lag_ids = 16;
 		sw_w32(0, RTL930X_ST_CTRL);
 		priv->l2_bucket_size = 8;
@@ -1515,18 +1453,13 @@ static int __init rtl83xx_sw_probe(struct platform_device *pdev)
 		priv->n_counters = 2048;
 		break;
 	case RTL9310_FAMILY_ID:
-		priv->ds->ops = &rtl93xx_switch_ops;
+		priv->ds->ops = &rtldsa_93xx_switch_ops;
 		priv->cpu_port = RTL931X_CPU_PORT;
 		priv->port_mask = 0x3f;
 		priv->port_width = 2;
 		priv->irq_mask = GENMASK_ULL(priv->cpu_port - 1, 0);
-		priv->r = &rtl931x_reg;
-		priv->ds->num_ports = 57;
+		priv->ds->num_ports = RTL931X_CPU_PORT + 1;
 		priv->fib_entries = 16384;
-		/* TODO A version based on CHIP_INFO and MODEL_NAME_INFO should
-		 * be constructed. For now, just set it to a static 'A'
-		 */
-		priv->version = RTL8390_VERSION_A;
 		priv->ds->num_lag_ids = 16;
 		sw_w32(0, RTL931x_ST_CTRL);
 		priv->l2_bucket_size = 8;
@@ -1536,7 +1469,6 @@ static int __init rtl83xx_sw_probe(struct platform_device *pdev)
 		priv->n_counters = 2048;
 		break;
 	}
-	pr_debug("Chip version %c\n", priv->version);
 
 	err = rtl83xx_mdio_probe(priv);
 	if (err) {
@@ -1582,11 +1514,11 @@ static int __init rtl83xx_sw_probe(struct platform_device *pdev)
 	switch (priv->family_id) {
 	case RTL8380_FAMILY_ID:
 		err = request_irq(priv->link_state_irq, rtl838x_switch_irq,
-		                  IRQF_SHARED, "rtl838x-link-state", priv->ds);
+				  IRQF_SHARED, "rtl838x-link-state", priv->ds);
 		break;
 	case RTL8390_FAMILY_ID:
 		err = request_irq(priv->link_state_irq, rtl839x_switch_irq,
-		                  IRQF_SHARED, "rtl839x-link-state", priv->ds);
+				  IRQF_SHARED, "rtl839x-link-state", priv->ds);
 		break;
 	case RTL9300_FAMILY_ID:
 		err = request_irq(priv->link_state_irq, rtldsa_930x_switch_irq,
@@ -1594,7 +1526,7 @@ static int __init rtl83xx_sw_probe(struct platform_device *pdev)
 		break;
 	case RTL9310_FAMILY_ID:
 		err = request_irq(priv->link_state_irq, rtl931x_switch_irq,
-		                  IRQF_SHARED, "rtl931x-link-state", priv->ds);
+				  IRQF_SHARED, "rtl931x-link-state", priv->ds);
 		break;
 	}
 	if (err) {
@@ -1608,7 +1540,8 @@ static int __init rtl83xx_sw_probe(struct platform_device *pdev)
 
 	rtl83xx_get_l2aging(priv);
 
-	rtl83xx_setup_qos(priv);
+	if (priv->r->qos_init)
+		priv->r->qos_init(priv);
 
 	if (priv->r->l3_setup)
 		priv->r->l3_setup(priv);
@@ -1633,7 +1566,7 @@ static int __init rtl83xx_sw_probe(struct platform_device *pdev)
 	priv->fib_nb.notifier_call = rtl83xx_fib_event;
 
 	/* Register Forwarding Information Base notifier to offload routes where
-	 * where possible
+	 * possible
 	 * Only FIBs pointing to our own netdevs are programmed into
 	 * the device, so no need to pass a callback.
 	 */
@@ -1698,16 +1631,30 @@ static void rtl83xx_sw_remove(struct platform_device *pdev)
 }
 
 static const struct of_device_id rtl83xx_switch_of_ids[] = {
-	{ .compatible = "realtek,rtl83xx-switch"},
+	{
+		.compatible = "realtek,rtl8380-switch",
+		.data = &rtldsa_838x_cfg,
+	},
+	{
+		.compatible = "realtek,rtl8392-switch",
+		.data = &rtldsa_839x_cfg,
+	},
+	{
+		.compatible = "realtek,rtl9301-switch",
+		.data = &rtldsa_930x_cfg,
+	},
+	{
+		.compatible = "realtek,rtl9311-switch",
+		.data = &rtldsa_931x_cfg,
+	},
 	{ /* sentinel */ }
 };
-
 
 MODULE_DEVICE_TABLE(of, rtl83xx_switch_of_ids);
 
 static struct platform_driver rtl83xx_switch_driver = {
-	.probe = rtl83xx_sw_probe,
-	.remove_new = rtl83xx_sw_remove,
+	.probe  = rtl83xx_sw_probe,
+	.remove = rtl83xx_sw_remove,
 	.driver = {
 		.name = "rtl83xx-switch",
 		.pm = NULL,

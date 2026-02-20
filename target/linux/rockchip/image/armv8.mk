@@ -90,6 +90,15 @@ define Device/ariaboard_photonicat
 endef
 TARGET_DEVICES += ariaboard_photonicat
 
+define Device/ariaboard_photonicat2
+  $(Device/rk3576)
+  DEVICE_VENDOR := Ariaboard
+  DEVICE_MODEL := Photonicat2
+  DEVICE_PACKAGES := kmod-photonicat-pm kmod-aic8800-usb wpad-openssl kmod-usb-net-cdc-mbim \
+	kmod-usb-net-qmi-wwan kmod-usb-serial-option uqmi
+endef
+TARGET_DEVICES += ariaboard_photonicat2
+
 define Device/armsom_sige3
   $(Device/rk3568)
   DEVICE_VENDOR := ArmSoM
@@ -325,7 +334,7 @@ define Device/nlnet_xiguapi-v3
   $(Device/rk3568)
   DEVICE_VENDOR := NLnet
   DEVICE_MODEL := XiGuaPi V3
-  DEVICE_PACKAGES := kmod-hwmon-pwmfan
+  DEVICE_PACKAGES := kmod-hwmon-pwmfan kmod-input-adc-keys kmod-saradc-rockchip
 endef
 TARGET_DEVICES += nlnet_xiguapi-v3
 
@@ -562,6 +571,22 @@ define Device/sinovoip_bpi-r2-pro
   DEVICE_PACKAGES := kmod-ata-ahci-dwc
 endef
 TARGET_DEVICES += sinovoip_bpi-r2-pro
+
+define Device/widora_mangopi-m28c
+  $(Device/rk3528)
+  DEVICE_VENDOR := Widora
+  DEVICE_MODEL := MangoPi M28C
+  DEVICE_PACKAGES := kmod-aic8800-sdio wpad-openssl kmod-hwmon-pwmfan
+endef
+TARGET_DEVICES += widora_mangopi-m28c
+
+define Device/widora_mangopi-m28k
+  $(Device/rk3528)
+  DEVICE_VENDOR := Widora
+  DEVICE_MODEL := MangoPi M28K
+  DEVICE_PACKAGES := kmod-aic8800-sdio wpad-openssl kmod-r8169
+endef
+TARGET_DEVICES += widora_mangopi-m28k
 
 define Device/xunlong_orangepi-5
   $(Device/rk3588s)

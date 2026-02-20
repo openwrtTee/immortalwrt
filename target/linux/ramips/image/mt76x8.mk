@@ -199,6 +199,17 @@ define Device/creality_wb-01
 endef
 TARGET_DEVICES += creality_wb-01
 
+define Device/cudy_lt400e-v1
+  IMAGE_SIZE := 7808k
+  DEVICE_VENDOR := Cudy
+  DEVICE_MODEL := LT400E
+  DEVICE_VARIANT := v1
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-net-cdc-ether \
+  kmod-usb-serial-option
+  SUPPORTED_DEVICES += cudy,lt400e
+endef
+TARGET_DEVICES += cudy_lt400e-v1
+
 define Device/cudy_m1200-v1
   IMAGE_SIZE := 15872k
   DEVICE_VENDOR := Cudy
@@ -373,6 +384,15 @@ define Device/hongdian_h7920-v40
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-net-qmi-wwan kmod-usb-serial-option uqmi
 endef
 TARGET_DEVICES += hongdian_h7920-v40
+
+define Device/hongdian_h8850-v20
+  IMAGE_SIZE := 16064k
+  DEVICE_VENDOR := Hongdian
+  DEVICE_MODEL := H8850
+  DEVICE_VARIANT := v20
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-net-qmi-wwan kmod-usb-serial-option uqmi
+endef
+TARGET_DEVICES += hongdian_h8850-v20
 
 define Device/huasifei_shf283
    IMAGE_SIZE := 16064k
@@ -753,6 +773,23 @@ define Device/teltonika_rut9x6
 endef
 TARGET_DEVICES += teltonika_rut9x6
 
+define Device/teltonika_rut976
+  DEVICE_VENDOR := Teltonika
+  DEVICE_MODEL := RUT976
+  SUPPORTED_TELTONIKA_DEVICES := teltonika,rut976
+  SUPPORTED_TELTONIKA_HW_MODS := 2c7c_6005 TLA2021 CH343 esim ala440
+  IMAGE_SIZE := 31552k
+  BLOCKSIZE := 64k
+  DEVICE_PACKAGES := uqmi kmod-mt76x2 kmod-usb2 kmod-usb-ohci \
+	kmod-usb-serial-option kmod-spi-gpio kmod-gpio-nxp-74hc164 kmod-i2c-mt7628 \
+	kmod-hwmon-mcp3021 kmod-scsi-core kmod-usb-storage kmod-usb-acm kmod-usb-net-cdc-ether
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | \
+	append-rootfs | pad-rootfs | check-size | append-teltonika-metadata
+  IMAGE/sysupgrade.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | check-size | append-metadata
+endef
+TARGET_DEVICES += teltonika_rut976
+
 define Device/totolink_a3
   IMAGE_SIZE := 7936k
   UIMAGE_NAME := za3
@@ -1028,6 +1065,22 @@ define Device/tplink_tl-mr6400-v5
   IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
 endef
 TARGET_DEVICES += tplink_tl-mr6400-v5
+
+define Device/tplink_tl-mr6400-v7
+  $(Device/tplink-v2)
+  IMAGE_SIZE := 15872k
+  DEVICE_MODEL := TL-MR6400
+  DEVICE_VARIANT := v7
+  TPLINK_FLASHLAYOUT := 16Mmtk
+  TPLINK_HWID := 0x64000007
+  TPLINK_HWREV := 0x7
+  TPLINK_HWREVADD := 0x7
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport \
+	kmod-usb-serial-option kmod-usb-net-qmi-wwan uqmi
+  IMAGES := sysupgrade.bin tftp-recovery.bin
+  IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
+endef
+TARGET_DEVICES += tplink_tl-mr6400-v7
 
 define Device/tplink_tl-wa801nd-v5
   $(Device/tplink-v2)

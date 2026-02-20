@@ -1,5 +1,6 @@
 set_preinit_iface() {
 	case $(board_name) in
+	bazis,ax3000wm|\
 	cudy,m3000-v1|\
 	cudy,tr3000-256mb-v1|\
 	cudy,tr3000-v1|\
@@ -11,6 +12,7 @@ set_preinit_iface() {
 		ip link set eth1 up
 		ifname=eth1
 		;;
+	cudy,ap3000-v1|\
 	cudy,ap3000outdoor-v1|\
 	cudy,re3000-v1|\
 	ubnt,unifi-6-lr|\

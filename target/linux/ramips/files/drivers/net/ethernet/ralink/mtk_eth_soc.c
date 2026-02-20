@@ -1359,13 +1359,6 @@ static int __init fe_init(struct net_device *dev)
 
 	fe_reset_phy(priv);
 
-	/* Set the MAC address if it is correct, if not use a random MAC address  */
-	if (of_get_ethdev_address(priv->dev->of_node, dev)) {
-		eth_hw_addr_random(dev);
-		dev_err(priv->dev, "generated random MAC address %pM\n",
-			dev->dev_addr);
-	}
-
 	err = fe_mdio_init(priv);
 	if (err)
 		return err;
@@ -1554,11 +1547,20 @@ static int fe_probe(struct platform_device *pdev)
 	netdev->netdev_ops = &fe_netdev_ops;
 	netdev->base_addr = (unsigned long)fe_base;
 
-	netdev->irq = platform_get_irq(pdev, 0);
-	if (netdev->irq < 0) {
-		dev_err(&pdev->dev, "no IRQ resource found\n");
-		return -ENXIO;
+	/* Set the MAC address if it is correct, if not use a random MAC address  */
+	err = of_get_ethdev_address(pdev->dev.of_node, netdev);
+	if (err == -EPROBE_DEFER)
+		return err;
+
+	if (err) {
+		eth_hw_addr_random(netdev);
+		dev_err(&pdev->dev, "generated random MAC address %pM\n",
+			netdev->dev_addr);
 	}
+
+	netdev->irq = platform_get_irq(pdev, 0);
+	if (netdev->irq < 0)
+		return -ENXIO;
 
 	priv = netdev_priv(netdev);
 	spin_lock_init(&priv->page_lock);
