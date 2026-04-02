@@ -81,7 +81,7 @@
  		     __be16 vlan_proto, u16 vlan_id)
 --- a/include/linux/netdevice.h
 +++ b/include/linux/netdevice.h
-@@ -613,6 +613,36 @@ enum netdev_queue_state_t {
+@@ -615,6 +615,36 @@ enum netdev_queue_state_t {
  	__QUEUE_STATE_FROZEN,
  };
  
@@ -118,7 +118,7 @@
  #define QUEUE_STATE_DRV_XOFF	(1 << __QUEUE_STATE_DRV_XOFF)
  #define QUEUE_STATE_STACK_XOFF	(1 << __QUEUE_STATE_STACK_XOFF)
  #define QUEUE_STATE_FROZEN	(1 << __QUEUE_STATE_FROZEN)
-@@ -2026,6 +2056,7 @@ struct net_device {
+@@ -2028,6 +2058,7 @@ struct net_device {
  		unsigned long		priv_flags:32;
  		unsigned long		lltx:1;
  	);
@@ -126,7 +126,7 @@
  	const struct net_device_ops *netdev_ops;
  	const struct header_ops *header_ops;
  	struct netdev_queue	*_tx;
-@@ -2907,6 +2938,10 @@ enum netdev_cmd {
+@@ -2909,6 +2940,10 @@ enum netdev_cmd {
  	NETDEV_OFFLOAD_XSTATS_REPORT_USED,
  	NETDEV_OFFLOAD_XSTATS_REPORT_DELTA,
  	NETDEV_XDP_FEAT_CHANGE,
@@ -656,7 +656,7 @@
  
  out_remove_new_fa:
 @@ -1754,6 +1760,9 @@ int fib_table_delete(struct net *net, st
- 	if (fa_to_delete->fa_state & FA_S_ACCESSED)
+ 	if (READ_ONCE(fa_to_delete->fa_state) & FA_S_ACCESSED)
  		rt_cache_flush(cfg->fc_nlinfo.nl_net);
  
 +	blocking_notifier_call_chain(&iproute_chain,
@@ -708,7 +708,7 @@
  static inline const void *choose_neigh_daddr(const struct in6_addr *p,
  					     struct sk_buff *skb,
  					     const void *daddr)
-@@ -3928,6 +3931,10 @@ int ip6_route_add(struct fib6_config *cf
+@@ -3927,6 +3930,10 @@ int ip6_route_add(struct fib6_config *cf
  		return PTR_ERR(rt);
  
  	err = __ip6_ins_rt(rt, &cfg->fc_nlinfo, extack);
@@ -719,7 +719,7 @@
  	fib6_info_release(rt);
  
  	return err;
-@@ -3949,6 +3956,9 @@ static int __ip6_del_rt(struct fib6_info
+@@ -3948,6 +3955,9 @@ static int __ip6_del_rt(struct fib6_info
  	err = fib6_del(rt, info);
  	spin_unlock_bh(&table->tb6_lock);
  
@@ -729,7 +729,7 @@
  out:
  	fib6_info_release(rt);
  	return err;
-@@ -6424,6 +6434,20 @@ static int ip6_route_dev_notify(struct n
+@@ -6423,6 +6433,20 @@ static int ip6_route_dev_notify(struct n
  	return NOTIFY_OK;
  }
  
@@ -760,7 +760,7 @@
  	}
  #undef N
  	return "UNKNOWN_NETDEV_EVENT";
-@@ -12078,7 +12079,7 @@ static void __init net_dev_struct_check(
+@@ -12179,7 +12180,7 @@ static void __init net_dev_struct_check(
  #ifdef CONFIG_NET_XGRESS
  	CACHELINE_ASSERT_GROUP_MEMBER(struct net_device, net_device_read_tx, tcx_egress);
  #endif
@@ -769,7 +769,7 @@
  
  	/* TXRX read-mostly hotpath */
  	CACHELINE_ASSERT_GROUP_MEMBER(struct net_device, net_device_read_txrx, lstats);
-@@ -12087,7 +12088,7 @@ static void __init net_dev_struct_check(
+@@ -12188,7 +12189,7 @@ static void __init net_dev_struct_check(
  	CACHELINE_ASSERT_GROUP_MEMBER(struct net_device, net_device_read_txrx, hard_header_len);
  	CACHELINE_ASSERT_GROUP_MEMBER(struct net_device, net_device_read_txrx, features);
  	CACHELINE_ASSERT_GROUP_MEMBER(struct net_device, net_device_read_txrx, ip6_ptr);
@@ -778,7 +778,7 @@
  
  	/* RX read-mostly hotpath */
  	CACHELINE_ASSERT_GROUP_MEMBER(struct net_device, net_device_read_rx, ptype_specific);
-@@ -12107,7 +12108,7 @@ static void __init net_dev_struct_check(
+@@ -12208,7 +12209,7 @@ static void __init net_dev_struct_check(
  #ifdef CONFIG_NET_XGRESS
  	CACHELINE_ASSERT_GROUP_MEMBER(struct net_device, net_device_read_rx, tcx_ingress);
  #endif
@@ -965,7 +965,7 @@
  	__gre_xmit(skb, dev, &tunnel->parms.iph, htons(ETH_P_TEB));
  	return NETDEV_TX_OK;
  
-@@ -1381,6 +1385,7 @@ static void ipgre_tap_setup(struct net_d
+@@ -1382,6 +1386,7 @@ static void ipgre_tap_setup(struct net_d
  	dev->netdev_ops	= &gre_tap_netdev_ops;
  	dev->priv_flags &= ~IFF_TX_SKB_SHARING;
  	dev->priv_flags	|= IFF_LIVE_ADDR_CHANGE;
