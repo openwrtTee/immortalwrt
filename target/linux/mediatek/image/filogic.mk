@@ -10,7 +10,7 @@ endef
 
 define Build/fit-with-netgear-top-level-rootfs-node
 	$(call Build/fit-its,$(1))
-	$(TOPDIR)/scripts/gen_netgear_rootfs_node.sh $(KERNEL_BUILD_DIR)/root.squashfs > $@.rootfs
+	$(TOPDIR)/scripts/gen_netgear_rootfs_node.sh $(KERNEL_BUILD_DIR)/root.squashfs$(if $(TARGET_PER_DEVICE_ROOTFS),+pkg=$(ROOTFS_ID/$(DEVICE_NAME))) > $@.rootfs
 	awk '/configurations/ { system("cat $@.rootfs") } 1' $@.its > $@.its.tmp
 	@mv -f $@.its.tmp $@.its
 	@rm -f $@.rootfs
@@ -677,7 +677,7 @@ define Device/bananapi_bpi-r4-common
   DEVICE_VENDOR := Bananapi
   DEVICE_DTS_DIR := $(DTS_DIR)/
   DEVICE_DTS_LOADADDR := 0x45f00000
-  DEVICE_DTS_OVERLAY:= mt7988a-bananapi-bpi-r4-emmc mt7988a-bananapi-bpi-r4-rtc mt7988a-bananapi-bpi-r4-sd
+  DEVICE_DTS_OVERLAY:= mt7988a-bananapi-bpi-r4-emmc mt7988a-bananapi-bpi-r4-rtc mt7988a-bananapi-bpi-r4-sd mt7988a-bananapi-bpi-r4-wifi-be14
   DEVICE_DTC_FLAGS := --pad 4096
   DEVICE_PACKAGES := kmod-hwmon-pwmfan kmod-i2c-mux-pca954x kmod-eeprom-at24 kmod-mt7996-firmware kmod-mt7996-233-firmware \
 		     kmod-rtc-pcf8563 kmod-sfp kmod-phy-aquantia kmod-usb3 e2fsprogs f2fsck mkf2fs mt7988-wo-firmware automount
@@ -837,6 +837,16 @@ define Device/bazis_ax3000wm
   ARTIFACT/bl31-uboot.fip := mt7981-bl31-uboot bazis-ax3000wm
 endef
 TARGET_DEVICES += bazis_ax3000wm
+
+define Device/buffalo_wsr-3000ax4p
+  DEVICE_VENDOR := BUFFALO
+  DEVICE_MODEL := WSR-3000AX4P
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_DTS := mt7981b-buffalo-wsr-3000ax4p
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
+endef
+TARGET_DEVICES += buffalo_wsr-3000ax4p
 
 define Device/buffalo_wsr-6000ax8
   DEVICE_MODEL := WSR-6000AX8
@@ -1539,6 +1549,26 @@ define Device/cudy_wbr3000uax-v1-ubootmod
   ARTIFACT/bl31-uboot.fip := mt7981-bl31-uboot cudy_wbr3000uax-v1
 endef
 TARGET_DEVICES += cudy_wbr3000uax-v1-ubootmod
+
+define Device/dlink_aquila-pro-ai-e30-a1
+  DEVICE_VENDOR := D-Link
+  DEVICE_MODEL := AQUILA PRO AI E30
+  DEVICE_VARIANT := A1
+  DEVICE_DTS := mt7981b-dlink-aquila-pro-ai-e30-a1
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-leds-gca230718 kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
+  KERNEL_IN_UBI := 1
+  IMAGE_SIZE := 51200k
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+ifeq ($(IB),)
+ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
+  IMAGES += recovery.bin
+  IMAGE/recovery.bin := append-image-stage initramfs-kernel.bin | sysupgrade-tar kernel=$$$$@ |\
+    pad-to $$(IMAGE_SIZE) | dlink-ai-recovery-header DLK6E6110002 \x6A\x28\xEE\x0B \x00\x00\x2C\x00 \x00\x00\x20\x03 \x61\x6E
+endif
+endif
+endef
+TARGET_DEVICES += dlink_aquila-pro-ai-e30-a1
 
 define Device/dlink_aquila-pro-ai-m30-a1
   DEVICE_VENDOR := D-Link
@@ -2936,6 +2966,18 @@ define Device/routerich_be7200
 endef
 TARGET_DEVICES += routerich_be7200
 
+define Device/ruijie_rg-x60
+  DEVICE_VENDOR := Ruijie
+  DEVICE_MODEL := RG-X60
+  DEVICE_DTS := mt7986a-ruijie-rg-x60
+  DEVICE_DTS_CONFIG := config@ruijie_x60_gsw_en8811h_phy
+  DEVICE_DTS_DIR := ../dts
+  SUPPORTED_DEVICES += X60
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware kmod-phy-airoha-en8811h
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+TARGET_DEVICES += ruijie_rg-x60
+
 define Device/ruijie_rg-x60-pro
   DEVICE_VENDOR := Ruijie
   DEVICE_MODEL := RG-X60 Pro
@@ -3615,6 +3657,26 @@ define Device/zbtlink_zbt-z8103ax-c
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 endef
 TARGET_DEVICES += zbtlink_zbt-z8103ax-c
+
+define Device/zbtlink_zbt-z8106ax-t
+  DEVICE_VENDOR := Zbtlink
+  DEVICE_MODEL := ZBT-Z8106AX-T
+  DEVICE_ALT0_VENDOR := Zbtlink
+  DEVICE_ALT0_MODEL := ZBT-Z8106AX-M2-T
+  SUPPORTED_DEVICES += zbtlink,z8106ax-2sim
+  DEVICE_DTS := mt7981b-zbtlink-zbt-z8106ax-t
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware kmod-usb3 kmod-usb-net-qmi-wwan kmod-usb-serial-option
+  KERNEL_IN_UBI := 1
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  IMAGE_SIZE := 65536k
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-ubi | check-size $$(IMAGE_SIZE)
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+TARGET_DEVICES += zbtlink_zbt-z8106ax-t
 
 define Device/zyxel_ex5601-t0-stock
   DEVICE_VENDOR := Zyxel
