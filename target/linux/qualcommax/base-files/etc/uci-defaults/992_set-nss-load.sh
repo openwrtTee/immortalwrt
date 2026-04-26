@@ -4,9 +4,9 @@
 FILE="/usr/share/rpcd/ucode/luci"
 
 #添加NSS状态显示
-sed -i "s#const fd = popen('top.*')#const fd = popen('/sbin/cpuusage')#g" $FILE
+[ -f "$FILE" ] && sed -i "s#const fd = popen('top.*')#const fd = popen('/sbin/cpuusage')#g" $FILE
 
 #锁定NSS频率
-sysctl -w dev.nss.clock.auto_scale='0'
+mkdir -p /etc/sysctl.d && echo 'dev.nss.clock.auto_scale=0' > /etc/sysctl.d/97-nss-lock-clock.conf
 
 exit 0
