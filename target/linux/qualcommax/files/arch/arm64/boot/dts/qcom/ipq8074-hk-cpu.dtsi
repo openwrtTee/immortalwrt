@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+// SPDX-License-Identifier: GPL-2.0-only
 
 #include <dt-bindings/thermal/thermal.h>
 #include "ipq8074-cpr-regulator.dtsi"
