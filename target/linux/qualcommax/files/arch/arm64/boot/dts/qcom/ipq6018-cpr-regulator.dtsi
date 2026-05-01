@@ -14,6 +14,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include "ipq6018-mp5496.dtsi"
+
 &soc {
 	apc_apm: apm@b111000 {
 		compatible = "qcom,ipq807x-apm";

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #include "ipq6018-cpr-regulator.dtsi"
-#include "ipq6018-mp5496.dtsi"
 
 &rpm {
 	status = "okay";
